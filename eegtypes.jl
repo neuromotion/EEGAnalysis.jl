@@ -1,23 +1,4 @@
-using DSP, PyPlot, OpenEphysLoader
-
-#function to plot and display spectrogram of data x over time t with sampling rate fs
-function plot_data(x::Array{Float64,1}, t::Array{Float64,1}, fs::Int64, title::String)
-  fig = figure("$title")
-  subplot(211) #subplot with one column and two rows, putting this plot in first row
-  suptitle("$title")
-  subplots_adjust(hspace=0.5)
-  xlabel("Time (s)")
-  ylabel("Frequency (Hz)")
-  s = spectrogram(x)
-  #ti = time(s)
-  f = freq(s)
-  imshow(flipdim(log10(power(s)),1), extent=[first(t), last(t),
-          fs*first(f), fs*last(f)], aspect="auto") #display the spectrogram
-  subplot(212) #put the spectrogram in the second row
-  xlabel("Time (s)")
-  ylabel("Amplitude (uV)")
-  plot(t,x)
-  end
+using OpenEphysLoader, DSP, PyPlot
 
 type AnalogData
     x_all::Array{Float64,2} #data, with each row being a different channel and each column a time value
@@ -25,14 +6,6 @@ type AnalogData
     original_fs::Int64
     fs::Int64
     channel_nums::Vector{Int64} #desired channel numbers
-  end
-
-  #plot and display spectrogram for an analogdata object given the desired channel
-  function plot_analogdata(analogdata::AnalogData, channel::Int64, title::String)
-    xall = analogdata.x_all
-    x = xall[channel, :]
-    ti = analogdata.t
-    plot_data(x, ti, analogdata.fs, title)
   end
 
 #create analogdata object with only data and time- assumes all channels are desired and that fs is 30,000
@@ -48,7 +21,7 @@ end
 function load_continuous(path::String, fs::Int64)
   A = nothing
   open("$path", "r") do io
-      A = Array(SampleArray(Float64, io))
+    A = Array(SampleArray(Float64, io))
       #sleep(0.1)
       seekstart(io)
       T = Array(TimeArray(Float64, io))
@@ -79,4 +52,51 @@ x_all = Nullable{Array{Float64,2}}()
   end
   data = AnalogData(x_all, t; original_fs=fs, channel_nums=channel_nums)
   return data
+end
+
+type Session
+  name::String
+  fs_openephys::Int64
+  directory::String
+  eeg_data::Nullable{AnalogData}
+  spectrum::Nullable{AnalogData}
+  ica::Nullable{AnalogData}
+  ica_spectrum::Nullable{AnalogData}
+end
+
+function Session(name::String, directory::String, eeg_data=Nullable{AnalogData}())
+  S = Session(name, 30000, directory, eeg_data, Nullable{AnalogData}(), Nullable{AnalogData}(), Nullable{AnalogData}())
+end
+
+function load_eeg(session::Session, channel_nums::Vector{Int64})
+  if !isnull(session.eeg_data)
+    error("load_eeg: eeg_data already loaded")
+  else
+  session.eeg_data = load_continuous_channels("100_CH", session.directory, session.fs_openephys, channel_nums)
+  end
+end
+
+#you can get the eeg_data in the form of a non-nullable analog data type by using get(session.eeg_data)
+
+type Spectrogram
+  analog_data::AnalogData
+  power_all::Array{Float64,2}
+  freq_bins::DSP.Util.Frequencies
+  time_bins::FloatRange{Float64}
+  time::Array{Float64,1}
+end
+
+function Spectrogram(analog_data::AnalogData)
+  power_all = Array{Float64}[]
+  freq_bins = DSP.Util.Frequencies
+  time_bins = FloatRange{Float64}
+  for chan_name = 1:(size(analog_data.channel_nums)[1])
+    s = spectrogram(analog_data.x_all[chan_name, :])
+    freq_bins = freq(s)
+    time_bins = time(s)
+    power_x = power(s) #should this be 1209601 by 15?
+    push!(power_all, power_x)
+  end
+  ti = analog_data.t #is this the same as converting time bins back to time?
+  S = Spectrogram(analog_data, power_all, freq_bins, time_bins, ti)
 end
