@@ -68,15 +68,15 @@ type Spectrogram
   freq_bins::DSP.Util.Frequencies
   time_bins::FloatRange{Float64}
   time::Array{Float64,1}
+  n::Int64 #decides the size of the time bins
 end
 
-function Spectrogram(analog_data::AnalogData)
+function Spectrogram(analog_data::AnalogData, n=1024)
   power_all = Array{Float64}[]
   freq_bins = nothing
   time_bins = nothing
   for chan_name = 1:(size(analog_data.channel_nums)[1])
-    #TODO is 1024 the n we want? should n be an argument? (decides time bins)
-    s = spectrogram(analog_data.x_all[chan_name, :], 1024)
+    s = spectrogram(analog_data.x_all[chan_name, :], n)
     freq_bins = freq(s)
     time_bins = time(s)
     #TODO think about clamp range below!
@@ -84,7 +84,7 @@ function Spectrogram(analog_data::AnalogData)
     push!(power_all, power_x)
   end
   ti = analog_data.t #is this the same as converting time bins back to time?
-  S = Spectrogram(analog_data, power_all, freq_bins, time_bins, ti)
+  S = Spectrogram(analog_data, power_all, freq_bins, time_bins, ti, n)
 end
 
 type Session
