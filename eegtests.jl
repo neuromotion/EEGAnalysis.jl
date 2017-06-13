@@ -4,9 +4,9 @@ include("eegutilities.jl")
 
 
 
-@testset "Normalize Tests" begin
-@test normalize([2 4 8]) == [.25 .5 1]
-@test normalize([1, 2, 4]) == [0.25, 0.5, 1]
+@testset "Normalize Data Tests" begin
+@test normalize_data([2 4 8]) == [.25 .5 1]
+@test normalize_data([1, 2, 4]) == [0.25, 0.5, 1]
 end
 
 @testset "Threshold_01 Tests" begin

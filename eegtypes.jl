@@ -9,8 +9,13 @@ type AnalogData
   channel_nums::Vector{Int64} #desired channel numbers
 end
 
-"Create analogdata object given only data and time- assumes all channels are
-desired and that fs is 30,000"
+"""
+    AnalogData(x_all::Array{Float64,2}, t::Vector{Float64};
+    original_fs::Int64=30000, channel_nums::Vector{Int64}=[0,0])
+
+Create analogdata object given only data and time- assumes all channels are
+desired.
+"""
 function AnalogData(x_all::Array{Float64,2}, t::Vector{Float64};
   original_fs::Int64=30000, channel_nums::Vector{Int64}=[0,0])
   if channel_nums == nothing
@@ -21,8 +26,12 @@ function AnalogData(x_all::Array{Float64,2}, t::Vector{Float64};
   original_fs::Int64, fs::Int64, channel_nums::Vector{Int64})
 end
 
-"Return an array of the data and an array of the time values given a file path
-and sampling rate"
+"""
+    load_continuous(path::String, fs::Int64)
+
+Return an array of the data and an array of the time values given a file path
+and sampling rate
+"""
 function load_continuous(path::String, fs::Int64)
   A = nothing
   open("$path", "r") do io
@@ -34,9 +43,14 @@ function load_continuous(path::String, fs::Int64)
   end
 end
 
-"Creates an analogdata object given the desired channel numbers, data directory, and data prefix.
+"""
+    load_continuous_channels(prefix::String, data_directory::String,fs::Int64,
+    channel_nums::Vector{Int64}, recording_num::Int64=1)
+
+Creates an analogdata object given the desired channel numbers, data directory, and data prefix.
 Recording num is to account for if there are multiple recordings,
-in which case the appropriate number is added to the filename."
+in which case the appropriate number is added to the filename.
+"""
 function load_continuous_channels(prefix::String, data_directory::String,
   fs::Int64, channel_nums::Vector{Int64}, recording_num::Int64=1)
   x_all = Nullable{Array{Float64,2}}()
@@ -68,10 +82,13 @@ type Spectrogram
   freq_bins::DSP.Util.Frequencies
   time_bins::FloatRange{Float64}
   time::Array{Float64,1}
-  n::Int64 
+  n::Int64
 end
 
-"Create a Spectrogram object from an AnalogData object. N decides the size of time bins"
+"""
+    Spectrogram(analog_data::AnalogData, n=1024)
+Create a Spectrogram object from an AnalogData object. N decides the size of time bins
+"""
 function Spectrogram(analog_data::AnalogData, n=1024)
   power_all = Array{Float64}[]
   freq_bins = nothing
@@ -98,13 +115,19 @@ type Session
   ica_spectrum::Nullable{Spectrogram}
 end
 
-"Create a Session object"
+"""
+    Session(name::String, directory::String, eeg_data=Nullable{AnalogData}())
+Create a Session object
+"""
 function Session(name::String, directory::String, eeg_data=Nullable{AnalogData}())
   S = Session(name, 30000, directory, eeg_data, Nullable{Spectrogram}(),
   Nullable{AnalogData}(), Nullable{Spectrogram}())
 end
 
-"Load EEG data into a session"
+"""
+    load_eeg(session::Session, channel_nums::Vector{Int64})
+Load EEG data into a session
+"""
 function load_eeg(session::Session, channel_nums::Vector{Int64})
   if !isnull(session.eeg_data)
     error("load_eeg: eeg_data already loaded")
