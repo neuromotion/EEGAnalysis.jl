@@ -1,6 +1,6 @@
 using PyPlot, DSP
 
-#displays the spectrogram of a chosen channel of a Spectrogram object
+"Display spectrogram of a chosen channel of a Spectrogram Object"
 function plot_spectrogram(axes, spect::Spectrogram, channel_num::Int64,
   plot_title::String="")
   p = spect.power_all[channel_num]
@@ -15,7 +15,7 @@ function plot_spectrogram(axes, spect::Spectrogram, channel_num::Int64,
   title(plot_title)
 end
 
-#plot a channel of an analog data object
+"Plot a channel of an anlog data object vs time"
 function plot_time(axes, eeg_data::AnalogData, channel_num::Int64,
   plot_title::String="")
   xall = eeg_data.x_all
