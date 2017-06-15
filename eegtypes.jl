@@ -18,7 +18,7 @@ desired.
 """
 function AnalogData(x_all::Array{Float64,2}, t::Vector{Float64};
   original_fs::Int64=30000, channel_nums::Vector{Int64}=[0,0])
-  if channel_nums == nothing
+  if channel_nums == [0,0]
     channel_nums = collect(1:size(x_all)[1])
   end
   fs = original_fs
@@ -101,6 +101,7 @@ function Spectrogram(analog_data::AnalogData, n=1024)
     power_x = 20.*log10(clamp!(power(s), .00001 , 100000000))
     push!(power_all, power_x)
   end
+  println(typeof(power_all))
   ti = analog_data.t
   S = Spectrogram(analog_data, power_all, freq_bins, time_bins, ti, n)
 end
