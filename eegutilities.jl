@@ -5,7 +5,8 @@ using PyPlot, DSP
 Normalize data
 """
 function normalize_data(x::Vector{})
-  xnorm = x/maximum(x)
+  xmax::Float64 = maximum(x)
+  xnorm = x/xmax
 end
 
 """
@@ -26,10 +27,10 @@ end
     threshold_01(x, threshold)
 Turn all values above a threshold into ones and all values below into zeros
 """
-function threshold_01(x, threshold)
+function threshold_01(x::Vector{Float64}, threshold::Float64)
   hi_indices = x.>=threshold
-  x_new = zeros(size(x))
-  x_new[hi_indices] = 1
+  x_new = falses(size(x))
+  x_new[hi_indices] = true
   return x_new
 end
 
@@ -38,7 +39,7 @@ end
 Turn all values above a threshold into ones and all values below into zeros for
 each channel in x_all of an AnalogData object.
 """
-function threshold_01(ad::AnalogData, threshold)
+function threshold_01(ad::AnalogData, threshold::Float64)
   x_all = ad.x_all
   new_x_all = copy(x_all)
   for row in collect(1:size(x_all)[1])
@@ -52,7 +53,7 @@ end
     lowpass(data, cutoff, fs, order=5)
 Lowpass filter data
 """
-function lowpass(data::Vector{}, cutoff, fs, order=5)
+function lowpass(data::Vector{}, cutoff::Float64, fs::Int64, order::Int64=5)
   responsetype = Lowpass(cutoff, fs=fs)
   designmethod = Butterworth(order)
   filtered_data = filt(digitalfilter(responsetype, designmethod), data)
@@ -62,7 +63,7 @@ end
     lowpass(ad::AnalogData, cutoff, fs, order=5)
 Lowpass filter every channel in x_all of an AnalogData object.
 """
-function lowpass(ad::AnalogData, cutoff, fs, order=5)
+function lowpass(ad::AnalogData, cutoff::Float64, fs::Int64, order::Int64=5)
   x_all = ad.x_all
   new_x_all = copy(x_all)
   for row in collect(1:size(x_all)[1])
@@ -75,7 +76,7 @@ end
 highpass(data, cutoff, fs, order=5)
 Highpass filter data
 """
-function highpass(data::Vector{}, cutoff, fs, order=5)
+function highpass(data::Vector{}, cutoff::Float64, fs::Int64, order::Int64=5)
   responsetype = Highpass(cutoff, fs=fs)
   designmethod = Butterworth(order)
   filtered_data = filt(digitalfilter(responsetype, designmethod), data)
@@ -85,7 +86,7 @@ end
 highpass(ad::AnalogData, cutoff, fs, order=5)
 Highpass filter every channel in x_all of an AnalogData object.
 """
-function highpass(ad::AnalogData, cutoff, fs, order=5)
+function highpass(ad::AnalogData, cutoff::Float64, fs::Int64, order::Int64=5)
   x_all = ad.x_all
   new_x_all = copy(x_all)
   for row in collect(1:size(x_all)[1])
@@ -138,7 +139,7 @@ end
     toDecibels(x, x_ref)
 Covert x to decibels with reference x_ref.
 """
-function toDecibels(x, x_ref)
+function toDecibels(x::Vector{Float64}, x_ref::Float64)
   return 10.*log10(clamp!((x./x_ref), .00000001 , 100000000))
 end
 
@@ -147,7 +148,7 @@ end
 Covert each channel of x_all of the AnalogData object to decibels with reference
 x_ref.
 """
-function toDecibels(ad::AnalogData, x_ref)
+function toDecibels(ad::AnalogData, x_ref::Float64)
   x_all = ad.x_all
   new_x_all = copy(x_all)
   for row in collect(1:size(x_all)[1])
@@ -161,11 +162,11 @@ end
 For use after threshold_01. Remove any bounces shorter than min_samples_per_chunk,
 with the exception of a short leading bounce at the beginning of the array.
 """
-function debounce_discrete_signal(x, min_samples_per_chunk::Int64)
-  start_index = -1
+function debounce_discrete_signal(x::Vector{Bool}, min_samples_per_chunk::Int64)
+  start_index = 0
   x_new = copy(x)
   num_bounces_removed = 0
-  for i in collect(2:length(x_new)-1)
+  for i in collect(2:length(x_new))
     if x_new[i] != x_new[i-1]
       if (start_index > 0) && (i - start_index < min_samples_per_chunk)
         x_new[start_index:i] = x_new[i]
@@ -203,10 +204,10 @@ is a list containing the start index (inclusive)and end index (exclusive).
 If index_range contains floats, they will be rounded down to ints.
 t must be a 1d array with the same length as dimension dim of x.
 """
-function truncate_by_index(x::Vector{}, t::Vector{}, index_range::Vector{})
+function truncate_by_index(x::Vector{Float64}, t::Vector{Float64}, index_range::Vector{Int64})
   if index_range == nothing
     return(x,t)
-  index_range = [int(index_range[1]), int(index_range[2])]
+  index_range = [index_range[1], index_range[2]]
   elseif (index_range[1] < 0 || index_range[2] > length(t) || index_range[1] > index_range[2])
     error("truncate_by_index: Invalid range indices")
   end
@@ -220,7 +221,7 @@ end
 Truncate t and every channel of x_all in the AnalogData object to the given range
 of sample.
 """
-function truncate_by_index(analogdata::AnalogData, index_range::Vector{})
+function truncate_by_index(analogdata::AnalogData, index_range::Vector{Int64})
   if index_range == nothing
     return analogdata
   end
@@ -241,11 +242,11 @@ Return copies of x and t truncated to approximately the given time range.
 t_range is a list containing the start and end times in seconds. t must be a 1d
 array with the same length as dimension dim of x.
 """
-function truncate_by_value(x::Vector{}, t::Vector{}, t_range::Vector{})
+function truncate_by_value(x::Vector{Float64}, t::Vector{Float64}, t_range::Vector{Float64})
   if t_range == nothing
     return (x,t)
   elseif t_range[2] <= t_range[1] || t_range[2] > t[end]
-    error("truncate_vector_by_index: Invalid time range")
+    error("truncate_by_index: Invalid time range")
   end
   index_range = [1, length(t)]
   if t_range[1] > t[1]
@@ -254,7 +255,7 @@ function truncate_by_value(x::Vector{}, t::Vector{}, t_range::Vector{})
   if t_range[2] < t[end]
     index_range[2] = indmax(t.>t_range[2])
   end
-  return truncate_vector_by_index(x, t, index_range)
+  return truncate_by_index(x, t, index_range)
 end
 
 """
@@ -262,13 +263,13 @@ end
 Truncate t and every channel of x_all in the AnalogData object to approximately
 the given time range.
 """
-function truncate_by_value(analogdata::AnalogData, t_range::Vector{})
+function truncate_by_value(analogdata::AnalogData, t_range::Vector{Float64})
   t = analogdata.t
   x_all = analogdata.x_all
   if t_range == nothing
     return (x_all,t)
   elseif t_range[2] <= t_range[1] || t_range[2] > t[end]
-    error("truncate_vector_by_index: Invalid time range")
+    error("truncate_by_index: Invalid time range")
   end
   index_range = [1, length(t)]
   if t_range[1] > t[1]
