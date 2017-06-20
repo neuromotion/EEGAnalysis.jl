@@ -1,4 +1,5 @@
 using PyPlot, DSP
+include("eegtypes.jl")
 
 """
     plot_spectrogram(axes, spect::Spectrogram, channel_num::Int64,
