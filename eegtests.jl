@@ -40,17 +40,21 @@ end
 end
 
 @testset "toDecibels Tests" begin
-  @test toDecibels([1.0,2,3,4,5,6,7,8],1.0) ≈ [0.000000000000000000000000000000, 3.010299956639812091196972687612, 4.771212547196624242928919557016, 6.020599913279624182393945375225, 6.989700043360188352892237162450, 7.781512503836436778215102094691, 8.450980400142567461330145306420, 9.030899869919435829501708212774, ]
+  @test toDecibels([1.0,2,3,4,5,6,7,8],1.0) ≈ [0.000000000000000000000000000000,
+  3.010299956639812091196972687612, 4.771212547196624242928919557016, 6.020599913279624182393945375225, 6.989700043360188352892237162450, 7.781512503836436778215102094691, 8.450980400142567461330145306420, 9.030899869919435829501708212774, ]
 end
 
 @testset "debounce_discrete_signal Tests" begin
-  @test debounce_discrete_signal([true, true, true, false, false, true, true],3) == [true,true,true,true,true,true,true]
+  @test debounce_discrete_signal([true, true, true, false, false, true, true],3) ==
+  [true,true,true,true,true,true,true]
 end
 
 @testset "truncate_by_index Tests" begin
-  @test truncate_by_index([8,10,12,14.0,16],[1,2,3,4,5.0],[3,4,5]) == ([12.0,14.0],[3.0,4.0])
+  @test truncate_by_index([8,10,12,14.0,16],[1,2,3,4,5.0],[3,4,5]) ==
+  ([12.0,14.0],[3.0,4.0])
 end
 
 @testset "truncate_by_value Tests" begin
-  @test truncate_by_value([2.0, 4, 8, 16, 32], [1.0, 3, 5, 7, 9], [5.0,9]) == ([16.0,32.0],[7.0,9.0])
+  @test truncate_by_value([2.0, 4, 8, 16, 32], [1.0, 3, 5, 7, 9], [5.0,9]) ==
+  ([16.0,32.0],[7.0,9.0])
 end

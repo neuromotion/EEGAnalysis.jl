@@ -1,4 +1,5 @@
 using PyPlot, DSP
+include("eegtypes.jl")
 
 """
     normalize_data(x)
@@ -112,7 +113,8 @@ ratio of input to output sample rate relationship..
 #TODO this is SUPER slow
 function downsample(ad::AnalogData, ratio)
   x_all = ad.x_all
-  new_x_all = zeros(Float64, size(x_all)[1], length(downsample(x_all[1,:], ratio)))
+  new_x_all = zeros(Float64, size(x_all)[1], length(downsample(x_all[1,:],
+  ratio)))
   for row in collect(1:size(x_all)[1])
     new_x_all[row,:] = downsample(x_all[row,:], ratio)
   end
@@ -159,8 +161,9 @@ end
 
 """
     debounce_discrete_signal(x, min_samples_per_chunk)
-For use after threshold_01. Remove any bounces shorter than min_samples_per_chunk,
-with the exception of a short leading bounce at the beginning of the array.
+For use after threshold_01. Remove any bounces shorter than
+min_samples_per_chunk, with the exception of a short leading bounce at the
+beginning of the array.
 """
 function debounce_discrete_signal(x::Vector{Bool}, min_samples_per_chunk::Int64)
   start_index = 0
@@ -184,15 +187,16 @@ end
 
 """
     debounce_discrete_signal(ad::AnalogData, min_samples_per_chunk::Int64)
-For use after threshold_01. Remove any bounces shorter than min_samples_per_chunk
-in every channel of x_all of the AnalogData object, with the exception of a
-short leading bounce at the beginning of the array.
+For use after threshold_01. Remove any bounces shorter than
+min_samples_per_chunk in every channel of x_all of the AnalogData object, with
+the exception of a short leading bounce at the beginning of the array.
 """
 function debounce_discrete_signal(ad::AnalogData, min_samples_per_chunk::Int64)
   x_all = ad.x_all
   new_x_all = copy(x_all)
   for row in collect(1:size(x_all)[1])
-    new_x_all[row,:] = debounce_discrete_signal(x_all[1,:], min_samples_per_chunk)
+    new_x_all[row,:] = debounce_discrete_signal(x_all[1,:],
+    min_samples_per_chunk)
   end
   return AnalogData(new_x_all, new_t, ad.original_fs, ad.fs, ad.channel_nums)
 end
@@ -204,11 +208,13 @@ is a list containing the start index (inclusive)and end index (exclusive).
 If index_range contains floats, they will be rounded down to ints.
 t must be a 1d array with the same length as dimension dim of x.
 """
-function truncate_by_index(x::Vector{Float64}, t::Vector{Float64}, index_range::Vector{Int64})
+function truncate_by_index(x::Vector{Float64}, t::Vector{Float64},
+  index_range::Vector{Int64})
   if index_range == nothing
     return(x,t)
   index_range = [index_range[1], index_range[2]]
-  elseif (index_range[1] < 0 || index_range[2] > length(t) || index_range[1] > index_range[2])
+  elseif (index_range[1] < 0 || index_range[2] > length(t) ||
+    index_range[1] > index_range[2])
     error("truncate_by_index: Invalid range indices")
   end
   new_x = x[index_range[1]:index_range[2]]
@@ -218,8 +224,8 @@ end
 
 """
     truncate_by_index(analogdata::AnalogData, index_range::Vector{})
-Truncate t and every channel of x_all in the AnalogData object to the given range
-of sample.
+Truncate t and every channel of x_all in the AnalogData object to the given
+range of sample.
 """
 function truncate_by_index(analogdata::AnalogData, index_range::Vector{Int64})
   if index_range == nothing
@@ -242,7 +248,8 @@ Return copies of x and t truncated to approximately the given time range.
 t_range is a list containing the start and end times in seconds. t must be a 1d
 array with the same length as dimension dim of x.
 """
-function truncate_by_value(x::Vector{Float64}, t::Vector{Float64}, t_range::Vector{Float64})
+function truncate_by_value(x::Vector{Float64}, t::Vector{Float64},
+  t_range::Vector{Float64})
   if t_range == nothing
     return (x,t)
   elseif t_range[2] <= t_range[1] || t_range[2] > t[end]
@@ -280,3 +287,17 @@ function truncate_by_value(analogdata::AnalogData, t_range::Vector{Float64})
   end
   return truncate_by_index(analogdata, index_range)
 end
+
+#is it even worth doing this when all of the functions have different arguments?
+#Order now doesn't have a default value
+
+#function map_analogdata(ad::AnalogData, function; t_range::Vector{Float64}=nothing,
+#  threshold::Float64=nothing, cutoff::Float64=nothing, fs::Int64=nothing, order::Int64=nothing, ratio=nothing,
+#  x_ref::Float64=nothing, min_samples_per_chunk::Int64=nothing, index_range::Vector{Int64}=nothing)
+#  x_all = ad.x_all
+#  new_x_all = copy(x_all)
+#  for row in collect(1:size(x_all)[1])
+  #  new_x_all[row,:] = function(x_all[1,:])
+#end
+#  return AnalogData(new_x_all, ad.t, ad.original_fs, ad.fs, ad.channel_nums)
+#end
