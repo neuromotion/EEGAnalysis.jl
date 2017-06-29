@@ -18,7 +18,7 @@ function plot_spectrogram(axes, spect::Spectrogram, channel_num::Int64,
   fs*first(f), fs*last(f)], aspect="auto")
   xlabel("Time (s)")
   ylabel("Frequency (Hz)")
-  colorbar(img)
+  cb = colorbar(img, orientation="horizontal", pad=0.4)
   if plot_title == ""
     title("Channel $(spect.analog_data.channel_nums[channel_num])")
   else
