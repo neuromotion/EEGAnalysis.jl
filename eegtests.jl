@@ -1,18 +1,32 @@
 using Base.Test
 include("eegutilities.jl")
 
+data = AnalogData([1.0 2 3 4 5; 2 4 6 8 10], [1.0, 2, 3, 4, 5])
+
+@testset "ad_equals Tests" begin
+@test ad_equals(data, data) == true
+end
+
 @testset "Normalize Data Tests" begin
 @test normalize_data([1, 2, 4]) == [0.25, 0.5, 1]
+@test ad_equals(normalize_data(data), AnalogData(
+[0.2 0.4 0.6 0.8 1.0; 0.2 0.4 0.6 0.8 1.0],
+[1.0,2.0,3.0,4.0,5.0],30000,30000,
+[1,2]))
 end
 
 @testset "Threshold_01 Tests" begin
 @test threshold_01([1, 2, 3, 4, 5, 6, 7, 8, 9, 10.5], 4.0) ==
 [false, false, false, true, true, true, true, true, true, true]
+@test begin ad_equals(threshold_01(data, 3.0),AnalogData([0.0 0.0 1.0 1.0 1.0;
+0.0 1.0 1.0 1.0 1.0],[1.0,2.0,3.0,4.0,5.0],30000,30000,[1,2]))
+end
 end
 
 @testset "Lowpass Tests" begin
-    q = linspace(0,1,150)
+    q = collect(linspace(0,1,150))
     sindata = sin(60*2*pi*q) + sin(200*2*pi*q)
+    ad_sindata = AnalogData([(sin(60*2*pi*q) + sin(200*2*pi*q))'; (sin(70*2*pi*q) + sin(210*2*pi*q))'],q)
 
     @test begin
         actual = lowpass(sindata, 65.0, 150)
@@ -24,8 +38,9 @@ end
 end
 
 @testset "Highpass Tests" begin
-  q = linspace(0,1,410)
+  q = collect(linspace(0,1,410))
   sindata = sin(60*2*pi*q) + sin(200*2*pi*q)
+  ad_sindata = AnalogData([(sin(60*2*pi*q) + sin(200*2*pi*q))'; (sin(50*2*pi*q) + sin(190*2*pi*q))'],q)
 
   @test begin
     actual = highpass(sindata, 200.0, 410)
@@ -35,13 +50,20 @@ end
   end
 end
 
+
 @testset "Downsample Tests" begin
-  @test downsample([1,2,3,4,5,6,7,8], 1/2) == [1,3,5,7]
+  @test down_sample([1.0,2,3,4,5,6,7,8], 2) == [1,3,5,7]
+  @test down_sample([1.0,2,3,4,5,6,7,8], 3) == [1,4,7]
+  @test ad_equals(down_sample(data, 2), AnalogData([1.0 3.0 5.0; 2.0 6.0 10.0],
+  [1.0,3.0,5.0],30000,15000,[1,2]))
 end
 
 @testset "toDecibels Tests" begin
   @test toDecibels([1.0,2,3,4,5,6,7,8],1.0) ≈ [0.000000000000000000000000000000,
-  3.010299956639812091196972687612, 4.771212547196624242928919557016, 6.020599913279624182393945375225, 6.989700043360188352892237162450, 7.781512503836436778215102094691, 8.450980400142567461330145306420, 9.030899869919435829501708212774, ]
+  3.010299956639812091196972687612, 4.771212547196624242928919557016,
+  6.020599913279624182393945375225, 6.989700043360188352892237162450,
+  7.781512503836436778215102094691, 8.450980400142567461330145306420,
+  9.030899869919435829501708212774, ]
 end
 
 @testset "debounce_discrete_signal Tests" begin
@@ -52,9 +74,13 @@ end
 @testset "truncate_by_index Tests" begin
   @test truncate_by_index([8,10,12,14.0,16],[1,2,3,4,5.0],[3,4,5]) ==
   ([12.0,14.0],[3.0,4.0])
+  @test ad_equals(truncate_by_index(data, [2,3,4]),
+  AnalogData([2.0 3.0; 4.0 6.0],[2.0,3.0],30000,30000,[1,2]))
 end
 
 @testset "truncate_by_value Tests" begin
   @test truncate_by_value([2.0, 4, 8, 16, 32], [1.0, 3, 5, 7, 9], [5.0,9]) ==
   ([16.0,32.0],[7.0,9.0])
+  @test ad_equals(truncate_by_value(data, [3.0,5]), AnalogData([4.0 5.0; 8.0 10.0],
+  [4.0,5.0],30000,30000,[1,2]))
 end

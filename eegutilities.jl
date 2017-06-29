@@ -68,13 +68,13 @@ function lowpass(ad::AnalogData, cutoff::Float64, fs::Int64, order::Int64=5)
   x_all = ad.x_all
   new_x_all = copy(x_all)
   for row in collect(1:size(x_all)[1])
-    new_x_all[row,:] = lowpass(x_all[row,:], cutoff, fs, order=5)
+    new_x_all[row,:] = lowpass(x_all[row,:], cutoff, fs, order)
   end
   return AnalogData(new_x_all, ad.t, ad.original_fs, ad.fs, ad.channel_nums)
 end
 
 """
-highpass(data, cutoff, fs, order=5)
+    highpass(data, cutoff, fs, order=5)
 Highpass filter data
 """
 function highpass(data::Vector{}, cutoff::Float64, fs::Int64, order::Int64=5)
@@ -84,42 +84,44 @@ function highpass(data::Vector{}, cutoff::Float64, fs::Int64, order::Int64=5)
 end
 
 """
-highpass(ad::AnalogData, cutoff, fs, order=5)
+    highpass(ad::AnalogData, cutoff, fs, order=5)
 Highpass filter every channel in x_all of an AnalogData object.
 """
 function highpass(ad::AnalogData, cutoff::Float64, fs::Int64, order::Int64=5)
   x_all = ad.x_all
   new_x_all = copy(x_all)
   for row in collect(1:size(x_all)[1])
-    new_x_all[row,:] = highpass(x_all[row,:], cutoff, fs, order=5)
+    new_x_all[row,:] = highpass(x_all[row,:], cutoff, fs, order)
   end
   return AnalogData(new_x_all, ad.t, ad.original_fs, ad.fs, ad.channel_nums)
 end
 
 """
-    downsample(x, ratio)
-Downsample data, where ratio is ratio of input to output sample rate relationship.
+    down_sample(x::Vector{Float64}, factor::Int64)
+Downsample a vector x by a given factor. (If factor is 3, keep one value out of every three)
 """
-#Lowpass filter by at least as much as you are downsampling by.
-function downsample(x::Vector{}, ratio)
-  filt(FIRFilter(x, ratio), x)
+function down_sample(x::Vector{Float64}, factor::Int64)
+  new_x = []
+  for n in 1:factor:length(x)
+    append!(new_x, x[n])
+  end
+  return new_x
 end
 
 """
-    downsample(ad::AnalogData, ratio)
-Downsample every channel of x_all of the the AnalogData object, where ratio is
-ratio of input to output sample rate relationship..
+    down_sample(ad::AnalogData, factor::Int64)
+Downsample every channel in x_all of an analogdata object by a given factor.
 """
-#TODO this is SUPER slow
-function downsample(ad::AnalogData, ratio)
+function down_sample(ad::AnalogData, factor::Int64)
   x_all = ad.x_all
-  new_x_all = zeros(Float64, size(x_all)[1], length(downsample(x_all[1,:],
-  ratio)))
+  new_x_all = zeros(Float64, size(x_all)[1], length(down_sample(x_all[1,:],
+  factor)))
   for row in collect(1:size(x_all)[1])
-    new_x_all[row,:] = downsample(x_all[row,:], ratio)
+    new_x_all[row,:] = down_sample(x_all[row,:], factor)
   end
-  new_t = downsample(ad.t, ratio)
-  return AnalogData(new_x_all, new_t, ad.original_fs, ad.fs, ad.channel_nums)
+  new_t = down_sample(ad.t, factor)
+  new_fs = ad.fs/factor
+  return AnalogData(new_x_all, new_t, ad.original_fs, new_fs, ad.channel_nums)
 end
 
 """
@@ -156,7 +158,7 @@ function toDecibels(ad::AnalogData, x_ref::Float64)
   for row in collect(1:size(x_all)[1])
     new_x_all[row,:] = toDecibels(x_all[1,:], x_ref)
   end
-  return AnalogData(new_x_all, new_t, ad.original_fs, ad.fs, ad.channel_nums)
+  return AnalogData(new_x_all, ad.t, ad.original_fs, ad.fs, ad.channel_nums)
 end
 
 """
@@ -287,17 +289,3 @@ function truncate_by_value(analogdata::AnalogData, t_range::Vector{Float64})
   end
   return truncate_by_index(analogdata, index_range)
 end
-
-#is it even worth doing this when all of the functions have different arguments?
-#Order now doesn't have a default value
-
-#function map_analogdata(ad::AnalogData, function; t_range::Vector{Float64}=nothing,
-#  threshold::Float64=nothing, cutoff::Float64=nothing, fs::Int64=nothing, order::Int64=nothing, ratio=nothing,
-#  x_ref::Float64=nothing, min_samples_per_chunk::Int64=nothing, index_range::Vector{Int64}=nothing)
-#  x_all = ad.x_all
-#  new_x_all = copy(x_all)
-#  for row in collect(1:size(x_all)[1])
-  #  new_x_all[row,:] = function(x_all[1,:])
-#end
-#  return AnalogData(new_x_all, ad.t, ad.original_fs, ad.fs, ad.channel_nums)
-#end

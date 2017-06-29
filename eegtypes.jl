@@ -26,6 +26,19 @@ function AnalogData(x_all::Array{Float64,2}, t::Vector{Float64};
   original_fs::Int64, fs::Int64, channel_nums::Vector{Int64})
 end
 
+function ad_equals(adone::AnalogData, adtwo::AnalogData)
+  if ((adone.x_all == adtwo.x_all) && (adone.t == adtwo.t) && (adone.original_fs == adtwo.original_fs)
+    && (adone.fs == adtwo.fs) && (adone.channel_nums == adtwo.channel_nums))
+    return true
+  else
+    return false
+  end
+end
+
+#Base.==(x::AnalogData, y::AnalogData) =  ((x.x_all == y.x_all) && (x.t == y.t)
+#&& (x.original_fs == y.original_fs) && (x.fs == y.fs) && (x.channel_nums == y.channel_nums))
+
+
 """
     load_continuous(path::String, fs::Int64)
 
@@ -89,7 +102,7 @@ end
     Spectrogram(analog_data::AnalogData, n=1024)
 Create a Spectrogram object from an AnalogData object. N decides the size of time bins
 """
-function Spectrogram(analog_data::AnalogData, n=1024)
+function Spectrogram(analog_data::AnalogData, n=256)
   power_all = Array{Float64}[]
   freq_bins = nothing
   time_bins = nothing
@@ -101,7 +114,6 @@ function Spectrogram(analog_data::AnalogData, n=1024)
     power_x = 20.*log10(clamp!(power(s), .00001 , 100000000))
     push!(power_all, power_x)
   end
-  println(typeof(power_all))
   ti = analog_data.t
   S = Spectrogram(analog_data, power_all, freq_bins, time_bins, ti, n)
 end
