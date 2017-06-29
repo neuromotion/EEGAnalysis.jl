@@ -16,6 +16,8 @@ function plot_spectrogram(axes, spect::Spectrogram, channel_num::Int64,
   fs = spect.analog_data.fs
   img = axes[:imshow](flipdim(p,1), extent=[t_first, t_last,
   fs*first(f), fs*last(f)], aspect="auto")
+  xlabel("Time (s)")
+  ylabel("Frequency (Hz)")
   colorbar(img)
   title(plot_title)
 end
@@ -32,4 +34,5 @@ function plot_time(axes, eeg_data::AnalogData, channel_num::Int64,
   ti = eeg_data.t
   axes[:plot](ti,x)
   title(plot_title)
+  xlabel("Time (s)")
 end
