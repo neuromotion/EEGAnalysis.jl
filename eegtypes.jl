@@ -133,15 +133,19 @@ end
 Create a Session object
 """
 function Session(name::String, directory::String, eeg_data=Nullable{AnalogData}())
-  S = Session(name, 30000, directory, eeg_data, Nullable{Spectrogram}(),
-  Nullable{AnalogData}(), Nullable{Spectrogram}())
+  if isnull(eeg_data)
+    S = Session(name, 30000, directory, eeg_data, Nullable{Spectrogram}(),
+    Nullable{AnalogData}(), Nullable{Spectrogram}())
+  else S = Session(name, 30000, directory, eeg_data, Spectrogram(eeg_data),
+    Nullable{AnalogData}(), Nullable{Spectrogram}())
+  end
 end
 
 """
     load_eeg(session::Session, channel_nums::Vector{Int64})
 Load EEG data into a session
 """
-function load_eeg(session::Session, channel_nums::Vector{Int64}, prefix::String="100_CH",)
+function load_eeg(session::Session, channel_nums::Vector{Int64}, prefix::String="100_CH")
   if !isnull(session.eeg_data)
     error("load_eeg: eeg_data already loaded")
   else
@@ -152,3 +156,14 @@ function load_eeg(session::Session, channel_nums::Vector{Int64}, prefix::String=
 end
 
 #you can get the eeg_data in the form of a non-nullable analog data type by using get(session.eeg_data)
+
+function filter_session(session::Session, lowpass_cutoff::Float64, lowpass_fs::Int64, down_sample_factor::Int64, prefix::String="100_CH")
+  if isnull(session.eeg_data)
+    error("filter_session: no eeg_data loaded")
+  else
+    new_eeg_data = down_sample(lowpass(get(session.eeg_data), lowpass_cutoff, lowpass_fs), down_sample_factor)
+    filt_session = Session("Filtered $(session.name) (lowpass $(lowpass_cutoff) Hz, $(lowpass_fs) fs & downsample factor $(down_sample_factor))",
+    session.directory, new_eeg_data)
+    return filt_session
+  end
+end
