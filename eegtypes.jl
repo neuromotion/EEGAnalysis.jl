@@ -141,12 +141,13 @@ end
     load_eeg(session::Session, channel_nums::Vector{Int64})
 Load EEG data into a session
 """
-function load_eeg(session::Session, channel_nums::Vector{Int64})
+function load_eeg(session::Session, channel_nums::Vector{Int64}, prefix::String="100_CH",)
   if !isnull(session.eeg_data)
     error("load_eeg: eeg_data already loaded")
   else
-    session.eeg_data = load_continuous_channels("100_CH", session.directory,
+    session.eeg_data = load_continuous_channels(prefix, session.directory,
     session.fs_openephys, channel_nums)
+    session.spectrum = Spectrogram(get(session.eeg_data))
   end
 end
 
