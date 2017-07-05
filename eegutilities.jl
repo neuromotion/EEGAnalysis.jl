@@ -188,6 +188,21 @@ function debounce_discrete_signal(x::Vector{Bool}, min_samples_per_chunk::Int64)
 end
 
 """
+    debounce_discrete_signal(dd::DigitalData, min_samples_per_chunk::Int64)
+For use after threshold_01. Remove any bounces shorter than
+min_samples_per_chunk in every channel of x_all of the DigitalData object,
+with the exception of a short leading bounce at the beginning of the array. 
+"""
+function debounce_discrete_signal(dd::DigitalData, min_samples_per_chunk::Int64)
+  x_all = ad.x_all
+  new_x_all = copy(x_all)
+  for row in collect(1:size(x_all)[1])
+    new_x_all[row,:] = debounce_discrete_signal(x_all[row,:], min_samples_per_chunk)
+  end
+  return DigitalData(new_x_all, dd.t, dd.original_fs, dd.fs, dd.channel_nums
+end)
+
+"""
     truncate_by_index(x::Vector{}, t::Vector{}, index_range::Vector{})
 Return copies of x and t truncated to the given range of samples. index_range
 is a list containing the start index (inclusive)and end index (exclusive).
