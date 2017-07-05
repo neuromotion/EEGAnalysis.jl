@@ -26,6 +26,10 @@ function AnalogData(x_all::Array{Float64,2}, t::Vector{Float64};
   original_fs::Int64, fs::Int64, channel_nums::Vector{Int64})
 end
 
+"""
+    ad_equals(adone::AnaloglData, adtwo::AnalogData)
+Check whether two analogdata objects are equal.
+"""
 function ad_equals(adone::AnalogData, adtwo::AnalogData)
   if ((adone.x_all == adtwo.x_all) && (adone.t == adtwo.t) &&
     (adone.original_fs == adtwo.original_fs)
@@ -38,7 +42,6 @@ end
 
 #Base.==(x::AnalogData, y::AnalogData) =  ((x.x_all == y.x_all) && (x.t == y.t)
 #&& (x.original_fs == y.original_fs) && (x.fs == y.fs) && (x.channel_nums == y.channel_nums))
-
 
 """
     load_continuous(path::String, fs::Int64)
@@ -89,6 +92,46 @@ function load_continuous_channels(prefix::String, data_directory::String,
   end
   data = AnalogData(x_all, t; original_fs=fs, channel_nums=channel_nums)
   return data
+end
+
+type DigitalData
+  #data, with each row being a different channel and each column a time value
+  x_all::Array{Bool,2}
+  t::Vector{Float64} #time
+  original_fs::Int64
+  fs::Int64
+  channel_nums::Vector{Int64} #desired channel numbers
+end
+
+"""
+    DigitalData(x_all::Array{Bool,2}, t::Vector{Float64};
+    original_fs::Int64=30000, channel_nums::Vector{Int64}=[0,0])
+
+Create digitaldata object given only data and time- assumes all channels are
+desired.
+"""
+function DigitalData(x_all::Array{Bool,2}, t::Vector{Float64};
+  original_fs::Int64=30000, channel_nums::Vector{Int64}=[0,0])
+  if channel_nums == [0,0]
+    channel_nums = collect(1:size(x_all)[1])
+  end
+  fs = original_fs
+  AD = AnalogData(x_all::Array{Bool,2}, t::Vector{Float64},
+  original_fs::Int64, fs::Int64, channel_nums::Vector{Int64})
+end
+
+"""
+    dd_equals(ddone::DigitalData, ddtwo::DigitalData)
+Check whether two digitaldata objects are equal.
+"""
+function dd_equals(ddone::DigitalData, ddtwo::DigitalData)
+  if ((ddone.x_all == ddtwo.x_all) && (ddone.t == ddtwo.t) &&
+    (ddone.original_fs == ddtwo.original_fs)
+    && (ddone.fs == ddtwo.fs) && (ddone.channel_nums == ddtwo.channel_nums))
+    return true
+  else
+    return false
+  end
 end
 
 type Spectrogram
