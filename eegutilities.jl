@@ -64,11 +64,11 @@ end
     lowpass(ad::AnalogData, cutoff, fs, order=5)
 Lowpass filter every channel in x_all of an AnalogData object.
 """
-function lowpass(ad::AnalogData, cutoff::Float64, fs::Int64, order::Int64=5)
+function lowpass(ad::AnalogData, cutoff::Float64, order::Int64=5)
   x_all = ad.x_all
   new_x_all = copy(x_all)
   for row in collect(1:size(x_all)[1])
-    new_x_all[row,:] = lowpass(x_all[row,:], cutoff, fs, order)
+    new_x_all[row,:] = lowpass(x_all[row,:], cutoff, ad.fs, order)
   end
   return AnalogData(new_x_all, ad.t, ad.original_fs, ad.fs, ad.channel_nums)
 end
@@ -87,11 +87,11 @@ end
     highpass(ad::AnalogData, cutoff, fs, order=5)
 Highpass filter every channel in x_all of an AnalogData object.
 """
-function highpass(ad::AnalogData, cutoff::Float64, fs::Int64, order::Int64=5)
+function highpass(ad::AnalogData, cutoff::Float64, order::Int64=5)
   x_all = ad.x_all
   new_x_all = copy(x_all)
   for row in collect(1:size(x_all)[1])
-    new_x_all[row,:] = highpass(x_all[row,:], cutoff, fs, order)
+    new_x_all[row,:] = highpass(x_all[row,:], cutoff, ad.fs, order)
   end
   return AnalogData(new_x_all, ad.t, ad.original_fs, ad.fs, ad.channel_nums)
 end
@@ -167,7 +167,7 @@ For use after threshold_01. Remove any bounces shorter than
 min_samples_per_chunk, with the exception of a short leading bounce at the
 beginning of the array.
 """
-function debounce_discrete_signal(x::Vector{}, min_samples_per_chunk::Int64)
+function debounce_discrete_signal(x::Vector{Bool}, min_samples_per_chunk::Int64)
   start_index = 0
   x_new = copy(x)
   num_bounces_removed = 0
@@ -185,22 +185,6 @@ function debounce_discrete_signal(x::Vector{}, min_samples_per_chunk::Int64)
     println("debounce_discrete_signal: removed $(num_bounces_removed) bounces")
   end
   return x_new
-end
-
-"""
-    debounce_discrete_signal(ad::AnalogData, min_samples_per_chunk::Int64)
-For use after threshold_01. Remove any bounces shorter than
-min_samples_per_chunk in every channel of x_all of the AnalogData object, with
-the exception of a short leading bounce at the beginning of the array.
-"""
-function debounce_discrete_signal(ad::AnalogData, min_samples_per_chunk::Int64)
-  x_all = ad.x_all
-  new_x_all = copy(x_all)
-  for row in collect(1:size(x_all)[1])
-    new_x_all[row,:] = debounce_discrete_signal(x_all[row,:],
-    min_samples_per_chunk)
-  end
-  return AnalogData(new_x_all, ad.t, ad.original_fs, ad.fs, ad.channel_nums)
 end
 
 """
