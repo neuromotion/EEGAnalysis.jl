@@ -27,7 +27,8 @@ function AnalogData(x_all::Array{Float64,2}, t::Vector{Float64};
 end
 
 function ad_equals(adone::AnalogData, adtwo::AnalogData)
-  if ((adone.x_all == adtwo.x_all) && (adone.t == adtwo.t) && (adone.original_fs == adtwo.original_fs)
+  if ((adone.x_all == adtwo.x_all) && (adone.t == adtwo.t) &&
+    (adone.original_fs == adtwo.original_fs)
     && (adone.fs == adtwo.fs) && (adone.channel_nums == adtwo.channel_nums))
     return true
   else
@@ -77,7 +78,8 @@ function load_continuous_channels(prefix::String, data_directory::String,
   end
   for chan_name in channel_nums
     #TODO how to make this not have just my username?
-    filename = "/Users/mj2/data/eeg_tests/$data_directory/$prefix$chan_name$recording_num_str.continuous"
+    filename =
+    "/Users/mj2/data/eeg_tests/$data_directory/$prefix$chan_name$recording_num_str.continuous"
     (x,t) = load_continuous("$filename", fs)
     if isnull(x_all)
       x_all = x'
@@ -157,12 +159,21 @@ end
 
 #you can get the eeg_data in the form of a non-nullable analog data type by using get(session.eeg_data)
 
-function filter_session(session::Session, lowpass_cutoff::Float64, lowpass_fs::Int64, down_sample_factor::Int64, prefix::String="100_CH")
+"""
+    filter_session(session::Session, lowpass_cutoff::Float64, lowpass_fs::Int64,
+    down_sample_factor::Int64, lowpass_order::Int64=5, prefix::String="100_CH")
+Filter the eeg_data of a session with both lowpass and downsampling and return
+the new filtered session.
+"""
+function filter_session(session::Session, lowpass_cutoff::Float64,
+   down_sample_factor::Int64, lowpass_order::Int64=5,
+  prefix::String="100_CH")
   if isnull(session.eeg_data)
     error("filter_session: no eeg_data loaded")
   else
-    new_eeg_data = down_sample(lowpass(get(session.eeg_data), lowpass_cutoff, lowpass_fs), down_sample_factor)
-    filt_session = Session("Filtered $(session.name) (lowpass $(lowpass_cutoff) Hz, $(lowpass_fs) fs & downsample factor $(down_sample_factor))",
+    new_eeg_data = down_sample(lowpass(get(session.eeg_data), lowpass_cutoff,
+    get(session.eeg_data).fs, lowpass_order), down_sample_factor)
+    filt_session = Session("Filtered $(session.name) (fL $(lowpass_cutoff) Hz, $(new_eeg_data.fs) fs)",
     session.directory, new_eeg_data)
     return filt_session
   end
