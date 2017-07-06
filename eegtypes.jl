@@ -203,21 +203,38 @@ end
 #you can get the eeg_data in the form of a non-nullable analog data type by using get(session.eeg_data)
 
 """
-    filter_session(session::Session, lowpass_cutoff::Float64, lowpass_fs::Int64,
+    lowpass_session(session::Session, lowpass_cutoff::Float64, lowpass_fs::Int64,
     down_sample_factor::Int64, lowpass_order::Int64=5, prefix::String="100_CH")
 Filter the eeg_data of a session with both lowpass and downsampling and return
 the new filtered session. If no downsampling factor is provided, it is assumed to be 1
-and no downsampling occurs..
+and no downsampling occurs.
 """
-function filter_session(session::Session, lowpass_cutoff::Float64,
+function lowpass_session(session::Session, lowpass_cutoff::Float64,
    down_sample_factor::Int64=1, lowpass_order::Int64=5,
   prefix::String="100_CH")
   if isnull(session.eeg_data)
-    error("filter_session: no eeg_data loaded")
+    error("lowpass_session: no eeg_data loaded")
   else
     new_eeg_data = down_sample(lowpass(get(session.eeg_data), lowpass_cutoff,
     get(session.eeg_data).fs, lowpass_order), down_sample_factor)
     filt_session = Session("Filtered $(session.name) (fL $(lowpass_cutoff) Hz, $(new_eeg_data.fs) fs)",
+    session.directory, new_eeg_data)
+    return filt_session
+  end
+end
+
+"""
+    highpass_session(session::Session, highpass_cutoff::Float64, highpass_order::Int64=5,
+    prefix::String="100_CH")
+Highpass filter the eeg_data of a session and return the new filtered session.
+"""
+function highpass_session(session::Session, highpass_cutoff::Float64, highpass_order::Int64=5,
+  prefix::String="100_CH")
+  if isnull(session.eeg_data)
+    error("highpass_session: no eeg_data loaded")
+  else
+    new_eeg_data = highpass(get(session.eeg_data), highpass_cutoff, get(session.eeg_data).fs, highpass_order)
+    filt_session = Session("Filtered $(session.name) (fH $(highpass_cutoff) Hz, $(new_eeg_data.fs) fs)",
     session.directory, new_eeg_data)
     return filt_session
   end
