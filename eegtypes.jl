@@ -206,10 +206,11 @@ end
     filter_session(session::Session, lowpass_cutoff::Float64, lowpass_fs::Int64,
     down_sample_factor::Int64, lowpass_order::Int64=5, prefix::String="100_CH")
 Filter the eeg_data of a session with both lowpass and downsampling and return
-the new filtered session.
+the new filtered session. If no downsampling factor is provided, it is assumed to be 1
+and no downsampling occurs..
 """
 function filter_session(session::Session, lowpass_cutoff::Float64,
-   down_sample_factor::Int64, lowpass_order::Int64=5,
+   down_sample_factor::Int64=1, lowpass_order::Int64=5,
   prefix::String="100_CH")
   if isnull(session.eeg_data)
     error("filter_session: no eeg_data loaded")
