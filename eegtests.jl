@@ -88,8 +88,14 @@ end
 end
 
 @testset "debounce_discrete_signal Tests" begin
+  dd_data = DigitalData([true true true false true; false false false true false], [1.0, 2, 3, 4, 5])
   @test debounce_discrete_signal([true, true, true, false, false, true, true],3) ==
   [true,true,true,true,true,true,true]
+  @test begin
+    dd_equals(debounce_discrete_signal(dd_data,3), DigitalData(
+  Bool[true true true true true; false false false false false],
+  [1.0,2.0,3.0,4.0,5.0],30000,30000,[1,2]))
+  end
 end
 
 @testset "truncate_by_index Tests" begin

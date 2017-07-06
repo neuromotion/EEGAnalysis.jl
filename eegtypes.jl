@@ -116,7 +116,7 @@ function DigitalData(x_all::Array{Bool,2}, t::Vector{Float64};
     channel_nums = collect(1:size(x_all)[1])
   end
   fs = original_fs
-  AD = AnalogData(x_all::Array{Bool,2}, t::Vector{Float64},
+  DD = DigitalData(x_all::Array{Bool,2}, t::Vector{Float64},
   original_fs::Int64, fs::Int64, channel_nums::Vector{Int64})
 end
 
