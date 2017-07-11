@@ -289,6 +289,11 @@ function truncate_by_value(analogdata::AnalogData, t_range::Vector{Float64})
   return truncate_by_index(analogdata, index_range)
 end
 
+"""
+    ica(ad::AnalogData)
+Perform ICA over x_all of an AnalogData object and return the updated AnalogData.
+Number of components assumed to be number of channels.
+"""
 function ica(ad::AnalogData)
   x = ad.x_all
   k = size(ad.x_all)[1]

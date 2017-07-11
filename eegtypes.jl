@@ -182,7 +182,7 @@ function Session(name::String, directory::String, eeg_data=Nullable{AnalogData}(
   if isnull(eeg_data)
     S = Session(name, 30000, directory, eeg_data, Nullable{Spectrogram}(),
     Nullable{AnalogData}(), Nullable{Spectrogram}())
-  else S = Session(name, eeg_data.fs, directory, eeg_data, Spectrogram(eeg_data, n),
+  else S = Session(name, 30000, directory, eeg_data, Spectrogram(eeg_data, n),
     Nullable{AnalogData}(), Nullable{Spectrogram}())
   end
 end
@@ -223,7 +223,7 @@ end
 Filter the eeg_data of a session with both lowpass and downsampling and return
 the new filtered session. If no downsampling factor is provided, it is assumed to be 1
 and no downsampling occurs. Change n here if you want a different value for the
-spectrogram of the filtered data. 
+spectrogram of the filtered data.
 """
 function lowpass_session(session::Session, lowpass_cutoff::Float64,
    down_sample_factor::Int64=1, lowpass_order::Int64=5,
@@ -232,7 +232,7 @@ function lowpass_session(session::Session, lowpass_cutoff::Float64,
     error("lowpass_session: no eeg_data loaded")
   else
     new_eeg_data = down_sample(lowpass(get(session.eeg_data), lowpass_cutoff,
-    get(session.eeg_data).fs, lowpass_order), down_sample_factor)
+     lowpass_order), down_sample_factor)
     filt_session = Session("Filtered $(session.name) (fL $(lowpass_cutoff) Hz, $(new_eeg_data.fs) fs)",
     session.directory, new_eeg_data, n)
     return filt_session
