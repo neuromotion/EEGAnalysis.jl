@@ -147,7 +147,7 @@ end
     Spectrogram(analog_data::AnalogData, n=1024)
 Create a Spectrogram object from an AnalogData object. N decides the size of time bins
 """
-function Spectrogram(analog_data::AnalogData, n=256)
+function Spectrogram(analog_data::AnalogData, n::Int64=256)
   power_all = Array{Float64}[]
   freq_bins = nothing
   time_bins = nothing
@@ -174,15 +174,30 @@ type Session
 end
 
 """
-    Session(name::String, directory::String, eeg_data=Nullable{AnalogData}())
-Create a Session object
+    Session(name::String, directory::String, eeg_data=Nullable{AnalogData}(), n::Int64=256))
+Create a Session object. Providing eeg_data will automatically create a spectrogram, so change n
+here if necessary.
 """
-function Session(name::String, directory::String, eeg_data=Nullable{AnalogData}())
+function Session(name::String, directory::String, eeg_data=Nullable{AnalogData}(), n::Int64=256)
   if isnull(eeg_data)
     S = Session(name, 30000, directory, eeg_data, Nullable{Spectrogram}(),
     Nullable{AnalogData}(), Nullable{Spectrogram}())
-  else S = Session(name, 30000, directory, eeg_data, Spectrogram(eeg_data),
+  else S = Session(name, eeg_data.fs, directory, eeg_data, Spectrogram(eeg_data, n),
     Nullable{AnalogData}(), Nullable{Spectrogram}())
+  end
+end
+
+"""
+    function session_equals(s1::Session, s2::Session)
+Check whether two session objects are equal.
+"""
+function session_equals(s1::Session, s2::Session)
+  if ((s1.name==s2.name) && (s1.fs_openephys==s2.fs_openephys) && (s1.directory==s2.directory) &&
+    ad_equals(get(s1.eeg_data), get(s2.eeg_data)) && (get(s1.spectrum)==get(s2.spectrum)) &&
+    ad_equals(get(s1.ica), get(s2.ica)) && (get(s1.ica_spectrum)==get(s2.ica_spectrum)))
+    return true
+  else
+    return false
   end
 end
 
@@ -207,35 +222,37 @@ end
     down_sample_factor::Int64, lowpass_order::Int64=5, prefix::String="100_CH")
 Filter the eeg_data of a session with both lowpass and downsampling and return
 the new filtered session. If no downsampling factor is provided, it is assumed to be 1
-and no downsampling occurs.
+and no downsampling occurs. Change n here if you want a different value for the
+spectrogram of the filtered data. 
 """
 function lowpass_session(session::Session, lowpass_cutoff::Float64,
    down_sample_factor::Int64=1, lowpass_order::Int64=5,
-  prefix::String="100_CH")
+  prefix::String="100_CH"; n::Int64=256)
   if isnull(session.eeg_data)
     error("lowpass_session: no eeg_data loaded")
   else
     new_eeg_data = down_sample(lowpass(get(session.eeg_data), lowpass_cutoff,
     get(session.eeg_data).fs, lowpass_order), down_sample_factor)
     filt_session = Session("Filtered $(session.name) (fL $(lowpass_cutoff) Hz, $(new_eeg_data.fs) fs)",
-    session.directory, new_eeg_data)
+    session.directory, new_eeg_data, n)
     return filt_session
   end
 end
 
 """
     highpass_session(session::Session, highpass_cutoff::Float64, highpass_order::Int64=5,
-    prefix::String="100_CH")
-Highpass filter the eeg_data of a session and return the new filtered session.
+    prefix::String="100_CH"; n::Int64=256)
+Highpass filter the eeg_data of a session and return the new filtered session. Change n here if you
+want a different value for the spectrogram of the filtered data.
 """
 function highpass_session(session::Session, highpass_cutoff::Float64, highpass_order::Int64=5,
-  prefix::String="100_CH")
+  prefix::String="100_CH"; n::Int64=256)
   if isnull(session.eeg_data)
     error("highpass_session: no eeg_data loaded")
   else
     new_eeg_data = highpass(get(session.eeg_data), highpass_cutoff, get(session.eeg_data).fs, highpass_order)
     filt_session = Session("Filtered $(session.name) (fH $(highpass_cutoff) Hz, $(new_eeg_data.fs) fs)",
-    session.directory, new_eeg_data)
+    session.directory, new_eeg_data, n)
     return filt_session
   end
 end
