@@ -1,4 +1,4 @@
-using PyPlot, DSP
+using PyPlot, DSP, MultivariateStats
 include("eegtypes.jl")
 
 """
@@ -287,4 +287,12 @@ function truncate_by_value(analogdata::AnalogData, t_range::Vector{Float64})
     index_range[2] = indmax(t.>t_range[2])
   end
   return truncate_by_index(analogdata, index_range)
+end
+
+function ica(ad::AnalogData)
+  x = ad.x_all
+  k = size(ad.x_all)[1]
+  i  = fit(ICA, x, k)
+  new_x =  transform(i,x)
+  AnalogData(new_x, ad.t, original_fs=ad.fs, channel_nums=ad.channel_nums)
 end
