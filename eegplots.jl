@@ -46,7 +46,7 @@ end
       t_end::Float64, f_low::Float64, f_high::Float64, t_close::Array{Float64,1}=[], t_open::Array{Float64,1}=[], legend_title::String=
       "", plot_title::String="")
 Plot the spectrogram of a chosen channel of the spectrogram of a session object, cropped to the times and amplitude limits specified.
-Put bar below areas of the graph where eyes are closed (or other types of time periods put into t_close and t_open). 
+Put bar below areas of the graph where eyes are closed (or other types of time periods put into t_close and t_open).
 """
 function plot_cropped_spectrogram(axes, session::Session, channel_num::Int64, t_start::Float64,
   t_end::Float64, f_low::Float64, f_high::Float64, t_close::Array{Float64,1}=[], t_open::Array{Float64,1}=[], legend_title::String=
@@ -72,7 +72,7 @@ function plot_cropped_spectrogram(axes, session::Session, channel_num::Int64, t_
       for i = 1:length(t_close)
         PyPlot.plot([t_close[i], t_open[i]], [f_low - 5, f_low - 5], color="red", lw =  4, label=legend_title)
         if i == 1
-          legend(bbox_to_anchor = [1.0,-0.32])
+          legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0)
         end
       end
     elseif length(t_close) != length(t_open)
@@ -135,7 +135,7 @@ function plot_cropped_time(axes, session::Session, channel_num::Int64, t_start::
       for i = 1:length(t_close)
         axvspan(t_close[i], t_open[i], color="pink", label=legend_title)
         if i == 1
-          legend(loc=0)
+          legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0)
         end
       end
     elseif length(t_close) != length(t_open)
