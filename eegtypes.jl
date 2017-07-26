@@ -138,7 +138,7 @@ type Spectrogram
   analog_data::AnalogData
   power_all
   freq_bins::DSP.Util.Frequencies
-  time_bins::FloatRange{Float64}
+  time_bins::StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}}
   time::Array{Float64,1}
   n::Int64
 end
