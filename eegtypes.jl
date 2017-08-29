@@ -90,6 +90,7 @@ function load_continuous_channels(prefix::String, data_directory::String,
       x_all = vcat(x_all, x')
     end
   end
+  x_all = convert(Array, x_all) # fixes type problem when there's only one channel
   data = AnalogData(x_all, t; original_fs=fs, channel_nums=channel_nums)
   return data
 end
