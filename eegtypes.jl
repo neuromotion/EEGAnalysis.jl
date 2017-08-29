@@ -80,9 +80,7 @@ function load_continuous_channels(prefix::String, data_directory::String,
     error("load_continuous_channels: invalid recording number")
   end
   for chan_name in channel_nums
-    #TODO how to make this not have just my username?
-    filename =
-    "/Users/mj2/data/eeg_tests/$data_directory/$prefix$chan_name$recording_num_str.continuous"
+    filename = "$data_directory/$prefix$chan_name$recording_num_str.continuous"
     (x,t) = load_continuous("$filename", fs)
     if isnull(x_all)
       x_all = x'
