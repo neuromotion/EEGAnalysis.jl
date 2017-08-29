@@ -50,6 +50,11 @@ Return an array of the data and an array of the time values given a file path
 and sampling rate
 """
 function load_continuous(path::String, fs::Int64)
+    expected_fs = 30_000
+    if fs != expected_fs
+        warn("Are you sure the open ephys sample rate is $(fs) Hz, not $(expected_fs) Hz?")
+    end
+
   A = nothing
   open("$path", "r") do io
     A = Array(SampleArray(Float64, io))
