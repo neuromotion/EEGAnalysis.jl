@@ -10,8 +10,10 @@ type AnalogData
 end
 
 """
-    AnalogData(x_all::Array{Float64,2}, t::Vector{Float64};
-    original_fs::Int64=30000, channel_nums::Vector{Int64}=[0,0])
+    AnalogData(x_all::Array{Float64,2},
+               t::Vector{Float64};
+               original_fs::Int64=30000,
+               channel_nums::Vector{Int64}=[0,0])
 
 Create analogdata object given only data and time- assumes all channels are
 desired.
@@ -37,6 +39,7 @@ end
 
 """
     ad_equals(adone::AnaloglData, adtwo::AnalogData)
+
 Check whether two analogdata objects are equal.
 """
 function ad_equals(adone::AnalogData, adtwo::AnalogData)
@@ -82,8 +85,10 @@ function load_continuous(path::String, fs::Int64)
 end
 
 """
-    load_continuous_channels(prefix::String, data_directory::String,fs::Int64,
-    channel_nums::Vector{Int64}, recording_num::Int64=1)
+    load_continuous_channels(prefix::String,
+                             data_directory::String,fs::Int64,
+                             channel_nums::Vector{Int64},
+                             recording_num::Int64=1)
 
 Creates an analogdata object given the desired channel numbers, data directory,
 and data prefix. Recording num is to account for if there are multiple
@@ -134,8 +139,10 @@ type DigitalData
 end
 
 """
-    DigitalData(x_all::Array{Bool,2}, t::Vector{Float64};
-    original_fs::Int64=30000, channel_nums::Vector{Int64}=[0,0])
+    DigitalData(x_all::Array{Bool,2},
+                t::Vector{Float64};
+                original_fs::Int64=30000,
+                channel_nums::Vector{Int64}=[0,0])
 
 Create digitaldata object given only data and time- assumes all channels are
 desired.
@@ -160,6 +167,7 @@ end
 
 """
     dd_equals(ddone::DigitalData, ddtwo::DigitalData)
+
 Check whether two digitaldata objects are equal.
 """
 function dd_equals(ddone::DigitalData, ddtwo::DigitalData)
