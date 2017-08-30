@@ -227,13 +227,28 @@ end
 Create a Session object. Providing eeg_data will automatically create a
 spectrogram, so change n here if necessary.
 """
-function Session(name::String, directory::String, eeg_data=Nullable{AnalogData}(), n::Int64=256)
-  if isnull(eeg_data)
-    S = Session(name, 30000, directory, eeg_data, Nullable{Spectrogram}(),
-    Nullable{AnalogData}(), Nullable{Spectrogram}())
-  else S = Session(name, 30000, directory, eeg_data, Spectrogram(eeg_data, n),
-    Nullable{AnalogData}(), Nullable{Spectrogram}())
-  end
+function Session(name::String,
+                 directory::String,
+                 eeg_data=Nullable{AnalogData}(),
+                 n::Int64=256)
+    # TODO do nullable types need to be declared that way?
+    # TODO test this after refactoring
+    default_fs = 30_000
+
+    spectrogram = nothing
+    if isnull(eeg_data)
+        spectrogram = Spectrogram(eeg_data, n)
+    end
+
+    S = Session(
+        name,
+        default_fs,
+        directory,
+        eeg_data,
+        spectrogram,
+        Nullable{AnalogData}(),
+        Nullable{Spectrogram}()
+    )
 end
 
 """
